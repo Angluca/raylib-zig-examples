@@ -1,7 +1,9 @@
 const std = @import("std");
 
 const examples = .{
-    .{"textures", .{"to_image"},},
+    .{"", .{"main"}},
+    .{"core", .{"random_values"}},
+    .{"textures", .{"to_image"}},
 };
 
 pub fn build(b: *std.Build) void {
