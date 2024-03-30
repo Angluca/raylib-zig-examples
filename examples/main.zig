@@ -10,15 +10,17 @@ const screen_height: i32 = 450;
 
 pub fn main() !void {
     //init --
+    //rl.SetTraceLogLevel(rl.LOG_WARNING);
     rl.SetExitKey(rl.KEY_ESCAPE);
-    rl.SetTraceLogLevel(rl.LOG_WARNING);
     rl.InitWindow(screen_width, screen_height, "myapp");
+    defer rl.CloseWindow();
     rl.SetTargetFPS(60);
+
     //loops --
     var dt: f32 = 0;
     while (!rl.WindowShouldClose()) {
-        dt = rl.GetFrameTime();
         //update --
+        dt = rl.GetFrameTime();
         switch (rl.GetKeyPressed()) {
             0 => {},
             else => |key| std.debug.print("Input key:{}\n", .{key}),
@@ -31,5 +33,4 @@ pub fn main() !void {
         rl.EndDrawing();
     }
     //deinit --
-    rl.CloseWindow();
 }

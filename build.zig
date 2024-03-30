@@ -4,7 +4,7 @@ const examples = .{
     //.{"", .{"main"}},
     .{"core", .{"random_values"}},
     .{"textures", .{"to_image"}},
-    .{"test", .{"mytest"}},
+    .{"test", .{"test2d", "test3d"}},
 };
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});

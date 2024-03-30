@@ -12,7 +12,7 @@ const screen_height: i32 = 450;
 
 pub fn main() !void {
     //init --
-    rl.InitWindow(screen_width, screen_height, "test-sprite");
+    rl.InitWindow(screen_width, screen_height, "test2d");
     rl.InitAudioDevice();
     defer rl.CloseWindow();
     defer rl.CloseAudioDevice();
