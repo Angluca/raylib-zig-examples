@@ -1,11 +1,11 @@
 const std = @import("std");
 
 const examples = .{
-    .{"", .{"main"}},
+    //.{"", .{"main"}},
     .{"core", .{"random_values"}},
     .{"textures", .{"to_image"}},
+    .{"test", .{"mytest"}},
 };
-
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -21,13 +21,12 @@ pub fn build(b: *std.Build) void {
         "strip",
         "Strip debug info to reduce binary size, defaults to false",
     ) orelse false;
-    const strip_flags = if(strip) .{
-        //"-std=c99",
-        "-fno-sanitize=undefined", "-O3",
-    } else .{
-        //"-g","-O3",
-        "-fno-sanitize=undefined", "-O3",
-    };
+    const strip_flags = .{"-O3"};
+    //const strip_flags = if(strip) .{
+        //"-O3",
+    //} else .{
+        //"-g", "-fno-sanitize=undefined", "-O3",
+    //};
 
     const raylib_dep = b.dependency("raylib", .{
         .target = target,
@@ -70,6 +69,8 @@ pub fn build(b: *std.Build) void {
                 run_cmd.addArgs(args);
             }
             b.step(name, "Run " ++ name).dependOn(&run_cmd.step);
+            if(dir.len > 0)
+                b.step(dir ++ "-" ++ name, "Run " ++ name).dependOn(&run_cmd.step);
         }
     }
 }
