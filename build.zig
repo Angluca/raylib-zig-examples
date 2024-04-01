@@ -2,7 +2,7 @@ const std = @import("std");
 
 const examples = .{
     //.{"", .{"main"}},
-    .{"core", .{"random_values"}},
+    .{"core", .{"random_values", "custom_logging"}},
     .{"textures", .{"to_image"}},
     .{"test", .{"test2d", "test3d"}},
 };

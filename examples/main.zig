@@ -10,8 +10,8 @@ const screen_height: i32 = 450;
 
 pub fn main() !void {
     //init --
-    //rl.SetTraceLogLevel(rl.LOG_WARNING);
     rl.SetExitKey(rl.KEY_ESCAPE);
+    rl.SetTraceLogLevel(rl.LOG_WARNING);
     rl.InitWindow(screen_width, screen_height, "myapp");
     defer rl.CloseWindow();
     rl.SetTargetFPS(60);

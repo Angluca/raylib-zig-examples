@@ -12,11 +12,12 @@ const screen_height: i32 = 450;
 
 pub fn main() !void {
     //init --
+    rl.SetExitKey(rl.KEY_ESCAPE);
+    rl.SetTraceLogLevel(rl.LOG_WARNING);
     rl.InitWindow(screen_width, screen_height, "test2d");
     rl.InitAudioDevice();
     defer rl.CloseWindow();
     defer rl.CloseAudioDevice();
-    rl.SetExitKey(rl.KEY_ESCAPE);
     rl.SetTargetFPS(60);
 
     //music & sound
