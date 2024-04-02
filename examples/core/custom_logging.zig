@@ -7,8 +7,8 @@ pub const c = @cImport({
     @cInclude("time.h");
 });
 
-const screen_width: i32 = 800;
-const screen_height: i32 = 450;
+const screen_width = 800;
+const screen_height = 450;
 
 pub fn customLog(msg_type: c_int, fmt:[*:0]const u8, ...) callconv(.C) void {
     const time_str: [*]u8 = @constCast(&([_]u8{0} ** 64));

@@ -7,8 +7,8 @@ pub const rl = @cImport({
 });
 const bufPrintZ = std.fmt.bufPrintZ;
 
-const screen_width: i32 = 800;
-const screen_height: i32 = 450;
+const screen_width = 800;
+const screen_height = 450;
 
 pub fn main() !void {
     //init --
