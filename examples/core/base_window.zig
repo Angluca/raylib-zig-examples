@@ -12,7 +12,7 @@ pub fn main() !void {
     //init --
     rl.SetExitKey(rl.KEY_ESCAPE);
     rl.SetTraceLogLevel(rl.LOG_WARNING);
-    rl.InitWindow(screen_width, screen_height, "myapp");
+    rl.InitWindow(screen_width, screen_height, "base_window");
     defer rl.CloseWindow();
     rl.SetTargetFPS(60);
 
