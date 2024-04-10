@@ -21,11 +21,12 @@ pub fn main() !void {
 
     var score: i32 = 0;
     var hiscore: i32 = 0;
-    var frame_counter: i32 = 0;
+    var frame_counter: u32 = 0;
 
     //loops --
     while (!rl.WindowShouldClose()) {
         //update --
+        frame_counter +%= 1;
         if(rl.IsKeyPressed(rl.KEY_SPACE)) {
             score = rl.GetRandomValue(100, 2000);
             hiscore = rl.GetRandomValue(2000, 4000);
@@ -39,7 +40,6 @@ pub fn main() !void {
             score = loadStorageValue(StorageData.score);
             hiscore = loadStorageValue(StorageData.hiscore);
         }
-        frame_counter += 1;
 
         //draw --
         rl.BeginDrawing();
@@ -48,7 +48,7 @@ pub fn main() !void {
             rl.DrawText(rl.TextFormat("SCORE: %i", score), 280, 130, 40, rl.MAROON);
             rl.DrawText(rl.TextFormat("HI-SCORE: %i", hiscore), 210, 200, 50, rl.BLACK);
 
-            rl.DrawText(rl.TextFormat("frames: %i", frame_counter), 10, 10, 20, rl.LIME);
+            rl.DrawText(rl.TextFormat("frames: %u", frame_counter), 10, 10, 20, rl.LIME);
 
             rl.DrawText("Press SPACE to generate random numbers", 220, 40, 20, rl.LIGHTGRAY);
             rl.DrawText("Press Mouse_Right to SAVE values", 250, 310, 20, rl.LIGHTGRAY);

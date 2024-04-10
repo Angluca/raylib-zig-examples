@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const examples = .{
-    .{"core", .{"base_window","random_values","custom_logging","mouse_input","keyboard_input","mouse_wheel","scissor_test","drop_files","storage_values"}},
+    .{"core", .{"base_window","random_values","custom_logging","mouse_input","keyboard_input","mouse_wheel","scissor_test","drop_files","storage_values","window_letterbox","window_flags","input_gestures"}},
     .{"textures", .{"to_image"}},
     .{"test", .{"test2d", "test3d"}},
 };
