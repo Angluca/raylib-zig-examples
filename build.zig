@@ -1,9 +1,19 @@
 const std = @import("std");
 
 const examples = .{
-    .{"core", .{"base_window","random_values","custom_logging","mouse_input","keyboard_input","mouse_wheel","scissor_test","drop_files","storage_values","window_letterbox","window_flags","input_gestures"}},
-    .{"textures", .{"to_image"}},
-    .{"test", .{"test2d", "test3d"}},
+    .{"core", .{
+        "base_window","random_values","custom_logging","mouse_input",
+        "keyboard_input","mouse_wheel","scissor_test","drop_files",
+        "storage_values","window_letterbox","window_flags","input_gestures",
+        "loading_thread","frame_control","2d_camera_mouse_zoom","2d_camera",
+        "2d_camera_split_screen",
+    }},
+    .{"textures", .{
+        "to_image",
+    }},
+    .{"test", .{
+        "test2d", "test3d",
+    }},
 };
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -20,12 +30,13 @@ pub fn build(b: *std.Build) void {
         "strip",
         "Strip debug info to reduce binary size, defaults to false",
     ) orelse false;
-    const strip_flags = .{"-O3"};
-    //const strip_flags = if(strip) .{
-        //"-O3",
-    //} else .{
-        //"-g", "-fno-sanitize=undefined", "-O3",
-    //};
+    const strip_flags = if(strip) .{
+        "-O3", "",
+    } else .{
+        "-O3", "",
+        //"-fno-sanitize=undefined", "-O3",
+        //"-g",
+    };
 
     const raylib_dep = b.dependency("raylib", .{
         .target = target,
@@ -69,7 +80,7 @@ pub fn build(b: *std.Build) void {
             }
             b.step(name, "Run " ++ name).dependOn(&run_cmd.step);
             if(dir.len > 0)
-                b.step(dir ++ "-" ++ name, "Run " ++ name).dependOn(&run_cmd.step);
+                b.step(dir ++ "/" ++ name, "Run " ++ name).dependOn(&run_cmd.step);
         }
     }
 }

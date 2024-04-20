@@ -9,7 +9,7 @@ const screen_height = 450;
 pub fn main() !void {
     //init --
     rl.SetExitKey(rl.KEY_ESCAPE);
-    rl.InitWindow(screen_width, screen_height, "raylib [textures] example - texture loading and drawing");
+    rl.InitWindow(screen_width, screen_height, "to_image");
     rl.SetTargetFPS(60);
 
     var image = rl.LoadImage("assets/raylib_logo.png");
