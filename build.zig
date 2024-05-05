@@ -6,7 +6,7 @@ const examples = .{
         "keyboard_input","mouse_wheel","scissor_test","drop_files",
         "storage_values","window_letterbox","window_flags","input_gestures",
         "loading_thread","frame_control","2d_camera_mouse_zoom","2d_camera",
-        "2d_camera_split_screen","smooth_pixelperfect",
+        "2d_camera_split_screen","smooth_pixelperfect","2d_camera_platformer",
     }},
     .{"textures", .{
         "to_image",
