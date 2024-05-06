@@ -38,18 +38,22 @@ pub fn main() !void {
     };
     var camera_option: usize = 0;
     const camera_descriptions = [_][*]const u8 {
-        "Follow player center",
-        "Follow player center, but clamp to map edges",
         "Follow player center; smoothed",
         "Follow player center horizontally; update player center vertically after landing",
+        "Follow player center, but clamp to map edges",
+        "Follow player center",
         "Player push camera on getting too close to screen edge",
     };
+    var recorder = Recorder.init(&player, &camera);
+    defer recorder.deinit();
 
     //loops --
     var dt: f32 = 0;
     while (!rl.WindowShouldClose()) {
         //update --
         dt = rl.GetFrameTime();
+
+        recorder.dropFile();
         updatePlayer(&player, &envItems, dt);
 
         camera.zoom += rl.GetMouseWheelMove() * 0.05;
@@ -58,13 +62,14 @@ pub fn main() !void {
 
         switch (rl.GetKeyPressed()) {
             rl.KEY_R => {
-                camera.zoom = 1.0;
-                player.position = .{.x=400, .y=280};
+                recorder.resetScreen();
             },
             rl.KEY_C => camera_option = @mod(camera_option + 1, cameraUpdates.len),
             else => undefined,
         }
+
         cameraUpdates[camera_option](&camera, &player, &envItems, dt, screen_width, screen_height);
+        recorder.update();
 
         //draw --
         rl.BeginDrawing();
@@ -78,13 +83,17 @@ pub fn main() !void {
                 rl.DrawCircle(@intFromFloat(player.position.x), @intFromFloat(player.position.y), 5, rl.GOLD);
             rl.EndMode2D();
 
+            rl.DrawRectangle(10, 10, 290, 210, rl.Fade(rl.SKYBLUE, 0.5));
+            rl.DrawRectangleLines(10, 10, 290, 210, rl.Fade(rl.BLUE, 0.8));
+
             rl.DrawText("Controls:", 20, 20, 10, rl.BLACK);
-            rl.DrawText("- Right/Left to move", 40, 40, 10, rl.DARKGRAY);
+            rl.DrawText("- Right/Left or A/D to move", 40, 40, 10, rl.DARKGRAY);
             rl.DrawText("- Space to jump", 40, 60, 10, rl.DARKGRAY);
             rl.DrawText("- Mouse Wheel to Zoom in-out, R to reset zoom", 40, 80, 10, rl.DARKGRAY);
             rl.DrawText("- C to change camera mode", 40, 100, 10, rl.DARKGRAY);
             rl.DrawText("Current camera mode:", 20, 120, 10, rl.BLACK);
             rl.DrawText(camera_descriptions[camera_option], 40, 140, 10, rl.DARKGRAY);
+            recorder.draw();
 
         rl.EndDrawing();
     }
@@ -92,13 +101,13 @@ pub fn main() !void {
 }
 
 fn updatePlayer(player: *Player, envItems: []const EnvItem, delta: f32) void {
-    if(rl.IsKeyDown(rl.KEY_A)) {
+    if(rl.IsKeyDown(rl.KEY_A) or rl.IsKeyDown(rl.KEY_LEFT)) {
         player.position.x -= player.hor_spd * delta;
     }
-    else if(rl.IsKeyDown(rl.KEY_D)) {
+    else if(rl.IsKeyDown(rl.KEY_D) or rl.IsKeyDown(rl.KEY_RIGHT)) {
         player.position.x += player.hor_spd * delta;
     }
-    if(player.can_jump and rl.IsKeyPressed(rl.KEY_SPACE)) {
+    if(player.can_jump and rl.IsKeyDown(rl.KEY_SPACE)) {
         player.speed = -player.jump_spd;
         player.can_jump = false;
     }
@@ -119,7 +128,7 @@ fn updatePlayer(player: *Player, envItems: []const EnvItem, delta: f32) void {
     }
     if(!hit_obstacle) {
         player.position.y += player.speed * delta;
-        player.speed += player.g * delta;
+        player.speed += player.gravity * delta;
         player.can_jump = false;
     } else player.can_jump = true;
 
@@ -225,7 +234,7 @@ const Player = struct {
     can_jump: bool,
     jump_spd: f32 = 450,
     hor_spd: f32 = 200,
-    g: f32 = 1000,
+    gravity: f32 = 1000,
     fn init(x: f32, y: f32, speed: f32) Self {
         return Self {
             .position = .{.x=x, .y=y},
@@ -246,6 +255,146 @@ const EnvItem = struct {
             .blocking = blocking,
             .color = color,
         };
+    }
+};
+
+const Recorder = struct {
+    const Self = @This();
+    var _self: Self = undefined;
+
+    save_data: struct{Player, rl.Vector2},
+    ate_list: rl.AutomationEventList,
+    recording: bool = false,
+    playing: bool = false,
+    frame_counter: i32 = 0,
+    play_frame_counter: u32 = 0,
+    play_frame_cur: usize = 0,
+    player: *Player,
+    camera: *rl.Camera2D,
+    fn init(player: *Player, camera: *rl.Camera2D) *Self {
+        const self = &Recorder._self;
+        self.player = player;
+        self.camera = camera;
+        self.ate_list = rl.LoadAutomationEventList(0);
+        rl.SetAutomationEventList(&self.ate_list);
+        self.saveData();
+        return self;
+    }
+    fn deinit(self: *Self) void {
+        rl.UnloadAutomationEventList(self.ate_list);
+    }
+    fn saveData(self: *Self) void {
+        self.ate_list = rl.LoadAutomationEventList(0);
+        self.save_data = .{self.player.*, self.camera.target};
+    }
+    fn loadDataSwap(self: *Self, b: bool) void {
+        const tmp = .{self.player.*, self.camera.target};
+        self.player.* = self.save_data[0];
+        self.camera.target = self.save_data[1];
+        self.camera.offset = .{.x=screen_width/2.0, .y=screen_height/2.0};
+        if(b) self.save_data = tmp;
+    }
+    fn resetScreen(self: *Self) void {
+        self.saveData();
+        self.player.position = rl.Vector2{.x=400, .y=280};
+        self.player.speed = 0;
+        self.player.can_jump = false;
+
+        self.camera.target = self.player.position;
+        self.camera.offset = rl.Vector2{.x=screen_width/2.0, .y=screen_height/2.0};
+        //self.camera.rotation = 0;
+        self.camera.zoom = 1.0;
+    }
+    fn dropFile(self: *Self) void {
+        if(rl.IsFileDropped()) {
+            const dropped_files = rl.LoadDroppedFiles();
+            defer rl.UnloadDroppedFiles(dropped_files);
+            if(rl.IsFileExtension(dropped_files.paths[0], ".txt;.rae")) {
+                rl.UnloadAutomationEventList(self.ate_list);
+                self.ate_list = rl.LoadAutomationEventList(dropped_files.paths[0]);
+                self.recording = false;
+                self.playing = true;
+                self.play_frame_counter = 0;
+                self.play_frame_cur = 0;
+
+                self.resetScreen();
+            }
+        }
+    }
+    fn update(self: *Self) void {
+        if(rl.IsKeyPressed(rl.KEY_I)) {
+            if(!self.playing) {
+                if(self.recording) {
+                    rl.StopAutomationEventRecording();
+                    self.recording = false;
+                    //_ = rl.ExportAutomationEventList(self.ate_list, "automation.rae");
+                    rl.TraceLog(rl.LOG_INFO, "RECORDED FRAMES: %i", self.ate_list.count);
+                } else {
+                    rl.SetAutomationEventBaseFrame(0);
+                    rl.StartAutomationEventRecording();
+                    self.recording = true;
+                    self.saveData();
+                }
+            }
+        } else if(rl.IsKeyPressed(rl.KEY_O)) {
+            if(!self.recording) {
+                if(!self.playing and self.ate_list.count > 0) {
+                    self.playing = true;
+                    self.play_frame_counter = 0;
+                    self.play_frame_cur = 0;
+                    self.loadDataSwap(false);
+                }
+                //} else {
+                    //self.playing = false;
+                    //self.play_frame_cur = 0;
+                    //self.play_frame_counter = 0;
+                    //self.crossData(false);
+                //}
+            }
+        }
+
+        if(self.playing) {
+            while(self.play_frame_counter > self.ate_list.events[self.play_frame_cur].frame) {
+                const event = &self.ate_list.events[self.play_frame_cur];
+                rl.TraceLog(rl.LOG_INFO, "PLAYING: PlayFrameCount: %i | currentPlayFrame: %i | Event Frame: %i, param: %i",
+                    self.play_frame_counter, self.play_frame_cur, event.frame, event.params[0]);
+                rl.PlayAutomationEvent(event.*);
+                self.play_frame_cur += 1;
+                if(self.play_frame_cur > self.ate_list.count) {
+                    self.playing = false;
+                    self.play_frame_cur = 0;
+                    self.play_frame_counter = 0;
+                    rl.TraceLog(rl.LOG_INFO, "FINISH PLAYING!");
+                    break;
+                }
+            }
+            self.play_frame_counter += 1;
+        }
+
+        if(self.recording or self.playing) self.frame_counter += 1
+        else self.frame_counter = 0;
+    }
+
+    fn draw(self: *Self) void {
+        rl.DrawText("Recorder:", 20, 160, 10, rl.BLACK);
+        rl.DrawText("- I: START/STOP RECORDING INPUT EVENTS", 40, 180, 10, rl.DARKGRAY);
+        rl.DrawText("- O: REPLAY LAST RECORDED INPUT EVENTS", 40, 200, 10, rl.DARKGRAY);
+
+        const uy: i32 = 222;
+        if(self.recording) {
+            rl.DrawRectangle(10, uy, 290, 30, rl.Fade(rl.RED, 0.3));
+            rl.DrawRectangleLines(10, uy, 290, 30, rl.Fade(rl.MAROON, 0.8));
+            rl.DrawCircle(30, uy + 15, 10, rl.MAROON);
+            if(@mod(@divTrunc(self.frame_counter, 15), 2) == 1)
+                rl.DrawText(rl.TextFormat("RECORDING EVENTS... [%i]", self.ate_list.count), 50, uy+10, 10, rl.MAROON);
+        } else if(self.playing) {
+            rl.DrawRectangle(10, uy, 290, 30, rl.Fade(rl.LIME, 0.3));
+            rl.DrawRectangleLines(10, uy, 290, 30, rl.Fade(rl.DARKGREEN, 0.8));
+            rl.DrawTriangle(rl.Vector2{.x=20, .y=uy+5}, rl.Vector2{.x=20, .y=uy+25}, rl.Vector2{.x=40, .y=uy+15}, rl.DARKGREEN);
+            if(@mod(@divTrunc(self.frame_counter, 15), 2) == 1)
+                rl.DrawText(rl.TextFormat("PLAYING RECORDING EVENTS... [%i]", self.play_frame_cur), 50, uy+10, 10, rl.DARKGREEN);
+
+        }
     }
 };
 

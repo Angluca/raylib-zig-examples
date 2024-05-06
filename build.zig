@@ -53,9 +53,14 @@ pub fn build(b: *std.Build) void {
         ////"-g",
     //};
 
-    const is_test = false; // Only build a example !!!
-    if(is_test) {
-        buildExample(b, "core", "smooth_pixelperfect", true);
+    const is_test = b.option(
+        bool,
+        "test",
+        "only build one test",
+    ) orelse false;
+
+    if(is_test) {  // -Dtest
+        buildExample(b, "core", "2d_camera_platformer", true);
     } else {
         inline for(examples)|e| {
             const dir = e[0];
@@ -85,6 +90,7 @@ fn buildExample(b: *std.Build, comptime dir: []const u8, comptime name: []const 
         .file = .{.path = "libs/libs.c"},
         //.flags = &strip_flags,
         .flags = &.{"-O3"},
+        //.flags = &.{"-g"},
     });
     exe.linkLibrary(raylib_dep.artifact("raylib"));
     exe.linkLibC();
