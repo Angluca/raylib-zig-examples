@@ -7,6 +7,7 @@ const examples = .{
         "storage_values","window_letterbox","window_flags","input_gestures",
         "loading_thread","frame_control","2d_camera_mouse_zoom","2d_camera",
         "2d_camera_split_screen","smooth_pixelperfect","2d_camera_platformer",
+        "3d_camera_first_person",
     }},
     .{"textures", .{
         "to_image",
@@ -60,7 +61,7 @@ pub fn build(b: *std.Build) void {
     ) orelse false;
 
     if(is_test) {  // -Dtest
-        buildExample(b, "core", "2d_camera_platformer", true);
+        buildExample(b, "core", "3d_camera_first_person", true);
     } else {
         inline for(examples)|e| {
             const dir = e[0];

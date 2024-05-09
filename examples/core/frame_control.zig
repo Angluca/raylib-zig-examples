@@ -1,12 +1,12 @@
 const std = @import("std");
 pub const rl = @cImport({
+    //@cDefine("SUPPORT_CUSTOM_FRAME_CONTROL", "1"); //must define in config.h
     @cInclude("raylib.h");
 });
 
 const screen_width = 800;
 const screen_height = 450;
 
-// can't smoothly running in macos, bug?
 pub fn main() !void {
     //init --
     rl.SetExitKey(rl.KEY_ESCAPE);
