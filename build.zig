@@ -9,6 +9,9 @@ const examples = .{
         "2d_camera_split_screen","smooth_pixelperfect","2d_camera_platformer",
         "3d_camera_first_person",
     }},
+    .{"shapes", .{
+        "following_eyes",
+    }},
     .{"textures", .{
         "to_image",
     }},
@@ -61,7 +64,7 @@ pub fn build(b: *std.Build) void {
     ) orelse false;
 
     if(is_test) {  // -Dtest
-        buildExample(b, "core", "3d_camera_first_person", true);
+        buildExample(b, "shapes", "following_eyes", true);
     } else {
         inline for(examples)|e| {
             const dir = e[0];
